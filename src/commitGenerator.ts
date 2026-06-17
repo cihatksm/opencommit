@@ -121,17 +121,34 @@ export async function generateAndInjectCommitMessage(
 
 /**
  * Inject the generated commit message into the VS Code Source Control input box.
- * Uses the vscode.scm.inputBox API which targets the active SCM provider's input.
+ * Uses the built-in Git extension's API for reliable injection.
  * Falls back to clipboard if injection fails.
  */
 async function injectCommitMessage(message: string): Promise<void> {
-    // Try the scm inputBox directly (works for the active/visible SCM provider)
+    // Approach 1: Use the built-in Git extension's API (most reliable)
+    try {
+        const gitExtension = vscode.extensions.getExtension('vscode.git');
+        if (gitExtension) {
+            if (!gitExtension.isActive) {
+                await gitExtension.activate();
+            }
+            const gitApi = gitExtension.exports.getAPI(1);
+            if (gitApi?.repositories?.length > 0) {
+                gitApi.repositories[0].inputBox.value = message;
+                return;
+            }
+        }
+    } catch {
+        // Git extension not available — fall through to next approach
+    }
+
+    // Approach 2: Try the generic scm.inputBox (works when SCM view is focused)
     if (vscode.scm.inputBox) {
         vscode.scm.inputBox.value = message;
         return;
     }
 
-    // Fallback: copy to clipboard
+    // Approach 3: Last fallback — copy to clipboard
     await vscode.env.clipboard.writeText(message);
     vscode.window.showInformationMessage(
         'OpenCommit: Commit message copied to clipboard (could not inject into SCM input).',
