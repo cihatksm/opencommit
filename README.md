@@ -1,13 +1,13 @@
 # OpenCommit — AI Commit Message Generator
 
-Generate **conventional commit messages** from your git diffs using the [OpenCode AI](https://opencode.ai/) API — directly in VS Code's Source Control panel.
+Generate **conventional commit messages** from your git diffs using AI (OpenAI, OpenRouter, DeepSeek, Groq, Ollama, or local OpenCode CLI) — directly in VS Code's Source Control panel.
 
 ---
 
 ## ✨ Features
 
 - **One-click commit messages** — Button in the Source Control panel
-- **AI-powered** — Uses OpenCode API with your choice of model
+- **Any AI provider** — OpenAI, OpenRouter, DeepSeek, Groq, Ollama, LM Studio, or local OpenCode CLI
 - **Conventional Commits** — `feat:`, `fix:`, `refactor:` and more
 - **Multi-line support** — Optional body explaining WHAT and WHY
 - **Smart diff handling** — Auto-truncates large diffs to fit the API
@@ -18,57 +18,81 @@ Generate **conventional commit messages** from your git diffs using the [OpenCod
 
 ## 🚀 Getting Started
 
-### 1. Get an OpenCode API Token
+### 1. Get an API Token
 
-Visit [https://opencode.ai/](https://opencode.ai/) and get your API token.
+Choose a provider:
 
-### 2. Set Your Token
+- **OpenAI** → https://platform.openai.com/api-keys
+- **OpenRouter** → https://openrouter.ai/keys
+- **Groq** → https://console.groq.com/keys
+- **DeepSeek** → https://platform.deepseek.com/api_keys
+- **Ollama** (local) → no key needed, use `ollama` as token
+
+### 2. Configure Settings
+
+Open VS Code Settings (`Ctrl+,`) and search for `OpenCommit`:
+
+| Setting               | Recommended value                            |
+| --------------------- | -------------------------------------------- |
+| `Api Base Url`        | `https://api.openai.com/v1/chat/completions` |
+| `Model`               | `gpt-4o-mini`                                |
+| `Conventional Commit` | `true`                                       |
+
+Or for local OpenCode CLI, set `Api Base Url` to `opencode-cli`.
+
+### 3. Set Your Token
 
 Open the Command Palette (`Ctrl+Shift+P`) and run:
 
 ```
-OpenCommit: Set OpenCode API Token
+OpenCommit: Set AI API Token
 ```
 
-Enter your token. It's stored **securely** in VS Code's SecretStorage.
-
-### 3. Generate a Commit Message
+### 4. Generate a Commit Message
 
 - Stage some changes in Source Control, then click the **AI Commit** button in the status bar, OR
 - Run `OpenCommit: Generate Commit Message` from the Command Palette
-
-The message is automatically inserted into the Source Control commit input — edit it if needed, then commit!
 
 ---
 
 ## ⚙️ Settings
 
-| Setting                                     | Default       | Description                    |
-| ------------------------------------------- | ------------- | ------------------------------ |
-| `commitMessageGenerator.model`              | `gpt-4o-mini` | AI model to use                |
-| `commitMessageGenerator.conventionalCommit` | `true`        | Use Conventional Commit format |
-| `commitMessageGenerator.multiLine`          | `false`       | Generate body with explanation |
-| `commitMessageGenerator.maxDiffLength`      | `4000`        | Max diff length sent to API    |
+| Setting                                     | Default                                      | Description                      |
+| ------------------------------------------- | -------------------------------------------- | -------------------------------- |
+| `commitMessageGenerator.apiBaseUrl`         | `https://api.openai.com/v1/chat/completions` | API endpoint (OpenAI-compatible) |
+| `commitMessageGenerator.model`              | `gpt-4o-mini`                                | AI model name                    |
+| `commitMessageGenerator.conventionalCommit` | `true`                                       | Conventional Commit format       |
+| `commitMessageGenerator.multiLine`          | `false`                                      | Multi-line with body             |
+| `commitMessageGenerator.maxDiffLength`      | `4000`                                       | Max diff chars sent to API       |
 
-### Available Models
+### Provider Examples
 
-`gpt-4o-mini`, `gpt-4o`, `claude-3-5-sonnet`, `claude-3-opus`, `claude-3-haiku`, `gemini-2.0-flash`, `gemini-1.5-pro`, `deepseek-v3`, `grok-2`
+| Provider          | API Base URL                                      |
+| ----------------- | ------------------------------------------------- |
+| OpenAI            | `https://api.openai.com/v1/chat/completions`      |
+| OpenRouter        | `https://openrouter.ai/api/v1/chat/completions`   |
+| Groq              | `https://api.groq.com/openai/v1/chat/completions` |
+| DeepSeek          | `https://api.deepseek.com/v1/chat/completions`    |
+| Ollama (local)    | `http://localhost:11434/v1/chat/completions`      |
+| LM Studio (local) | `http://localhost:1234/v1/chat/completions`       |
+| OpenCode CLI      | `opencode-cli` (runs locally)                     |
 
 ---
 
 ## 🔐 Security
 
-- API tokens are stored in VS Code's **SecretStorage** (encrypted)
-- Tokens are **never logged** to the console
-- Only the diff is sent to the API — no file contents beyond the diff
+- API tokens stored in VS Code **SecretStorage** (encrypted)
+- Tokens **never logged** to console
+- Only the diff is sent — no full file contents
 
 ---
 
-## 📦 Manual Build
+## 📦 Build
 
 ```bash
 npm install
 npm run compile
+npm run package
 ```
 
 ---

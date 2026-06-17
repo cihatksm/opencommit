@@ -42,7 +42,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
             const token = await vscode.window.showInputBox({
                 title: 'OpenCode API Token',
-                prompt: 'Enter your OpenCode API token (from https://opencode.ai/)',
+                prompt: 'Enter your AI API token (OpenAI, OpenRouter, Groq, DeepSeek, etc.)',
                 placeHolder: 'sk-...',
                 password: true,
                 ignoreFocusOut: true,

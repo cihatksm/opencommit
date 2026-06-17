@@ -82,7 +82,7 @@ export async function generateAndInjectCommitMessage(
 
                 // Step 5: Update progress
                 progress.report({
-                    message: `Calling OpenCode API (${model})...`,
+                    message: `Calling AI API (${model})...`,
                 });
 
                 // Step 6: Call the API

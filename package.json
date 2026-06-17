@@ -8,7 +8,7 @@
     "icon": "icon.png",
     "repository": {
         "type": "git",
-        "url": "https://github.com/opencommit/opencommit"
+        "url": "https://github.com/cihatksm/opencommit"
     },
     "engines": {
         "vscode": "^1.85.0"
@@ -42,7 +42,7 @@
             },
             {
                 "command": "opencommit.setApiToken",
-                "title": "Set OpenCode API Token",
+                "title": "Set AI API Token",
                 "category": "OpenCommit"
             }
         ],
@@ -68,20 +68,40 @@
         "configuration": {
             "title": "OpenCommit",
             "properties": {
+                "commitMessageGenerator.apiBaseUrl": {
+                    "type": "string",
+                    "default": "https://opencode.ai/zen/v1/chat/completions",
+                    "description": "The OpenAI-compatible API endpoint URL.\nOpenCode Zen tiers:\n- Free: https://opencode.ai/zen/v1/chat/completions\n- Go: https://opencode.ai/zen/go/v1/chat/completions\n- Go (Messages API): https://opencode.ai/zen/go/v1/messages\n\nOther providers:\n- OpenAI: https://api.openai.com/v1/chat/completions\n- OpenRouter: https://openrouter.ai/api/v1/chat/completions\n- Groq: https://api.groq.com/openai/v1/chat/completions\n- DeepSeek: https://api.deepseek.com/v1/chat/completions\n- Ollama (local): http://localhost:11434/v1/chat/completions\n- Or type \"opencode-cli\" to use the local OpenCode CLI tool."
+                },
                 "commitMessageGenerator.model": {
                     "type": "string",
-                    "default": "gpt-4o-mini",
-                    "description": "The OpenCode AI model to use for commit message generation.",
+                    "default": "deepseek-v4-flash-free",
+                    "description": "The AI model to use. Works with any model your API provider supports.",
                     "enum": [
+                        "deepseek-v4-flash-free",
+                        "deepseek-v4-pro",
+                        "deepseek-v4-flash",
+                        "kimi-k2.6",
+                        "kimi-k2.5",
+                        "glm-5.1",
+                        "glm-5",
+                        "mimo-v2.5",
+                        "mimo-v2.5-pro",
+                        "mimo-v2.5-free",
+                        "minimax-m3",
+                        "minimax-m2.7",
+                        "minimax-m2.5",
+                        "minimax-m3-free",
+                        "qwen3.7-max",
+                        "qwen3.7-plus",
+                        "qwen3.6-plus",
+                        "qwen3.6-plus-free",
+                        "nemotron-3-super-free",
+                        "opencode-gen/kimi-k2.6",
                         "gpt-4o-mini",
                         "gpt-4o",
                         "claude-3-5-sonnet",
-                        "claude-3-opus",
-                        "claude-3-haiku",
-                        "gemini-2.0-flash",
-                        "gemini-1.5-pro",
-                        "deepseek-v3",
-                        "grok-2"
+                        "custom (type in settings.json)"
                     ]
                 },
                 "commitMessageGenerator.conventionalCommit": {
