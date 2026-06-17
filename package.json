@@ -2,7 +2,7 @@
     "name": "opencommit",
     "displayName": "OpenCommit — AI Commit Message Generator",
     "description": "Generate conventional commit messages from git diffs using AI (OpenCode Zen, OpenAI, OpenRouter & more) — directly in VS Code's Source Control panel. By cihatksm.",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "publisher": "cihatksm",
     "author": {
         "name": "Cihat Kösem",
