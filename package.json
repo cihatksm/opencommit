@@ -1,0 +1,120 @@
+{
+    "name": "opencommit",
+    "displayName": "OpenCommit — AI Commit Message Generator",
+    "description": "Generate conventional commit messages from git diffs using the OpenCode AI API, directly in VS Code's Source Control panel.",
+    "version": "1.0.0",
+    "publisher": "opencommit",
+    "license": "MIT",
+    "icon": "icon.png",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/opencommit/opencommit"
+    },
+    "engines": {
+        "vscode": "^1.85.0"
+    },
+    "categories": [
+        "SCM Providers",
+        "Other"
+    ],
+    "keywords": [
+        "commit",
+        "git",
+        "conventional commits",
+        "ai",
+        "opencode"
+    ],
+    "activationEvents": [
+        "onStartupFinished"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "opencommit.generateCommitMessage",
+                "title": "Generate Commit Message",
+                "category": "OpenCommit"
+            },
+            {
+                "command": "opencommit.regenerateCommitMessage",
+                "title": "Regenerate Commit Message",
+                "category": "OpenCommit"
+            },
+            {
+                "command": "opencommit.setApiToken",
+                "title": "Set OpenCode API Token",
+                "category": "OpenCommit"
+            }
+        ],
+        "menus": {
+            "scm/title": [
+                {
+                    "command": "opencommit.generateCommitMessage",
+                    "when": "scmProvider == git",
+                    "group": "navigation"
+                }
+            ],
+            "commandPalette": [
+                {
+                    "command": "opencommit.generateCommitMessage",
+                    "when": "scmProvider == git"
+                },
+                {
+                    "command": "opencommit.regenerateCommitMessage",
+                    "when": "scmProvider == git"
+                }
+            ]
+        },
+        "configuration": {
+            "title": "OpenCommit",
+            "properties": {
+                "commitMessageGenerator.model": {
+                    "type": "string",
+                    "default": "gpt-4o-mini",
+                    "description": "The OpenCode AI model to use for commit message generation.",
+                    "enum": [
+                        "gpt-4o-mini",
+                        "gpt-4o",
+                        "claude-3-5-sonnet",
+                        "claude-3-opus",
+                        "claude-3-haiku",
+                        "gemini-2.0-flash",
+                        "gemini-1.5-pro",
+                        "deepseek-v3",
+                        "grok-2"
+                    ]
+                },
+                "commitMessageGenerator.conventionalCommit": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Generate messages in Conventional Commit format (e.g., feat:, fix:, refactor:)."
+                },
+                "commitMessageGenerator.multiLine": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Generate multi-line commit messages with a body explaining the changes."
+                },
+                "commitMessageGenerator.maxDiffLength": {
+                    "type": "number",
+                    "default": 4000,
+                    "description": "Maximum diff length (characters) to send to the API. Larger diffs are truncated intelligently."
+                }
+            }
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "lint": "eslint src --ext ts",
+        "package": "vsce package"
+    },
+    "devDependencies": {
+        "@types/node": "^20.11.0",
+        "@types/vscode": "^1.85.0",
+        "typescript": "^5.3.3"
+    },
+    "dependencies": {
+        "simple-git": "^3.36.0"
+    }
+}
