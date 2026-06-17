@@ -2,7 +2,7 @@
     "name": "opencommit",
     "displayName": "OpenCommit — AI Commit Message Generator",
     "description": "Generate conventional commit messages from git diffs using AI (OpenCode Zen, OpenAI, OpenRouter & more) — directly in VS Code's Source Control panel. By cihatksm.",
-    "version": "1.2.3",
+    "version": "1.2.5",
     "publisher": "cihatksm",
     "author": {
         "name": "Cihat Kösem",
@@ -150,8 +150,8 @@
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
         "lint": "eslint src --ext ts",
-        "package": "vsce package",
-        "publish": "vsce publish",
+        "package": "npx @vscode/vsce package",
+        "publish": "powershell -ExecutionPolicy Bypass -File ./scripts/publish-marketplace.ps1",
         "build-install": "powershell -ExecutionPolicy Bypass -File ./scripts/build-install.ps1",
         "build-install:minor": "powershell -ExecutionPolicy Bypass -File ./scripts/build-install.ps1 minor",
         "build-install:major": "powershell -ExecutionPolicy Bypass -File ./scripts/build-install.ps1 major"
@@ -159,6 +159,7 @@
     "devDependencies": {
         "@types/node": "^20.11.0",
         "@types/vscode": "^1.85.0",
+        "@vscode/vsce": "^3.6.1",
         "typescript": "^5.3.3"
     },
     "dependencies": {
