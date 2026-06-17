@@ -41,17 +41,17 @@
         "commands": [
             {
                 "command": "opencommit.generateCommitMessage",
-                "title": "Generate Commit Message",
+                "title": "✨ Generate Commit",
                 "category": "OpenCommit"
             },
             {
                 "command": "opencommit.regenerateCommitMessage",
-                "title": "Regenerate Commit Message",
+                "title": "✨ Regenerate",
                 "category": "OpenCommit"
             },
             {
                 "command": "opencommit.setApiToken",
-                "title": "Set AI API Token",
+                "title": "🔑 Set API Token",
                 "category": "OpenCommit"
             }
         ],

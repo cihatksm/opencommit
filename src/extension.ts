@@ -11,8 +11,8 @@ export function activate(context: vscode.ExtensionContext): void {
         100,
     );
     statusBarItem.command = 'opencommit.generateCommitMessage';
-    statusBarItem.text = '$(git-commit) AI Commit';
-    statusBarItem.tooltip = 'Generate commit message with OpenCode AI';
+    statusBarItem.text = '✨ AI Commit';
+    statusBarItem.tooltip = 'Generate commit message with AI';
     statusBarItem.show();
     context.subscriptions.push(statusBarItem);
 

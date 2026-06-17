@@ -36,8 +36,8 @@ export async function generateAndInjectCommitMessage(
     }
 
     // Show loading state
-    statusBarItem.text = '$(sync~spin) Generating commit message...';
-    statusBarItem.tooltip = 'OpenCommit is analyzing your changes...';
+    statusBarItem.text = '✨ Analyzing...';
+    statusBarItem.tooltip = 'Analyzing your changes...';
     statusBarItem.show();
 
     await vscode.window.withProgress(
@@ -103,7 +103,7 @@ export async function generateAndInjectCommitMessage(
                         ? 'Staged'
                         : 'Unstaged';
 
-                statusBarItem.text = '$(check) Commit message generated';
+                statusBarItem.text = '✅ Ready';
                 statusBarItem.tooltip = `Generated from ${sourceControlLabel.toLowerCase()} changes using ${model}`;
                 setTimeout(() => statusBarItem.hide(), 5000);
 
