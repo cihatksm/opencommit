@@ -60,7 +60,8 @@
                 {
                     "command": "opencommit.generateCommitMessage",
                     "when": "scmProvider == git",
-                    "group": "navigation"
+                    "group": "navigation",
+                    "icon": "$(sparkle)"
                 }
             ],
             "commandPalette": [
