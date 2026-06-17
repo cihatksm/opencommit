@@ -2,6 +2,76 @@ import * as vscode from 'vscode';
 import { getGitDiff, summarizeDiff, getChangedFiles } from './git';
 import { generateCommitMessage, getApiToken } from './opencodeClient';
 
+// Curated model list with cost hints — keep in sync with package.json enum
+const MODEL_CHOICES = [
+    { label: 'deepseek-v4-flash-free', description: '🆓 Free — fast, lightweight' },
+    { label: 'deepseek-v4-flash', description: '💰 Paid — fast' },
+    { label: 'deepseek-v4-pro', description: '💰💰 Paid — powerful' },
+    { label: 'mimo-v2.5-free', description: '🆓 Free — lightweight' },
+    { label: 'mimo-v2.5', description: '💰 Paid — balanced' },
+    { label: 'mimo-v2.5-pro', description: '💰💰 Paid — powerful' },
+    { label: 'minimax-m3-free', description: '🆓 Free — lightweight' },
+    { label: 'minimax-m3', description: '💰 Paid — powerful' },
+    { label: 'minimax-m2.7', description: '💰 Paid — balanced' },
+    { label: 'minimax-m2.5', description: '💰 Paid — legacy' },
+    { label: 'nemotron-3-super-free', description: '🆓 Free' },
+    { label: 'qwen3.6-plus-free', description: '🆓 Free — lightweight' },
+    { label: 'qwen3.7-plus', description: '💰 Paid — fast' },
+    { label: 'qwen3.7-max', description: '💰💰 Paid — powerful' },
+    { label: 'qwen3.6-plus', description: '💰 Paid — balanced' },
+    { label: 'kimi-k2.5', description: '💰 Paid — balanced' },
+    { label: 'kimi-k2.6', description: '💰💰 Paid — powerful' },
+    { label: 'glm-5', description: '💰 Paid — balanced' },
+    { label: 'glm-5.1', description: '💰💰 Paid — powerful' },
+    { label: 'opencode-gen/kimi-k2.6', description: '💰 Paid — OpenCode hosted' },
+    { label: 'gpt-4o-mini', description: '💰 Paid — OpenAI small' },
+    { label: 'gpt-4o', description: '💰💰💰 Paid — OpenAI flagship' },
+    { label: 'claude-3-5-sonnet', description: '💰💰💰 Paid — Anthropic' },
+];
+
+const LAST_MODEL_KEY = 'opencommit.lastModel';
+
+/**
+ * Prompt the user to pick an AI model via quick pick.
+ * Pre-selects the last used model or config default.
+ * Returns the chosen model label, or undefined if the user cancelled.
+ */
+async function promptModel(config: vscode.WorkspaceConfiguration, context: vscode.ExtensionContext): Promise<string | undefined> {
+    const promptModelSetting = config.get<boolean>('promptModel', true);
+    const configDefault = config.get<string>('model', 'deepseek-v4-flash-free');
+    const lastUsed = context.globalState.get<string>(LAST_MODEL_KEY);
+
+    // If promptModel is disabled, just use the default silently
+    if (!promptModelSetting) {
+        return lastUsed || configDefault;
+    }
+
+    // Prefer last used, then config default
+    const defaultModel = lastUsed || configDefault;
+
+    const pick = await vscode.window.showQuickPick(
+        MODEL_CHOICES.map(m => ({
+            label: m.label,
+            description: m.description,
+            picked: m.label === defaultModel,
+        })),
+        {
+            title: '✨ Select AI Model for Commit Message',
+            placeHolder: `Default: ${defaultModel} — use ↑↓ to change, Enter to confirm`,
+            matchOnDescription: true,
+            ignoreFocusOut: true,
+        },
+    );
+
+    if (!pick) {
+        return undefined; // user cancelled
+    }
+
+    // Remember for next time
+    await context.globalState.update(LAST_MODEL_KEY, pick.label);
+    return pick.label;
+}
+
 /**
  * Main orchestrator for the commit message generation workflow:
  * 1. Get the git diff
@@ -34,6 +104,19 @@ export async function generateAndInjectCommitMessage(
         }
         return;
     }
+
+    // Prompt for model selection
+    const model = await promptModel(config, context);
+    if (!model) {
+        // User cancelled
+        statusBarItem.text = '✨ AI Commit';
+        statusBarItem.tooltip = 'Generate commit message with AI';
+        return;
+    }
+
+    // Read remaining settings
+    const conventionalCommit = config.get<boolean>('conventionalCommit', true);
+    const multiLine = config.get<boolean>('multiLine', false);
 
     // Show loading state
     statusBarItem.text = '✨ Analyzing...';
@@ -75,12 +158,7 @@ export async function generateAndInjectCommitMessage(
                 const maxDiffLength = config.get<number>('maxDiffLength', 4000);
                 const processedDiff = summarizeDiff(diffResult.diff, maxDiffLength);
 
-                // Step 4: Get settings
-                const model = config.get<string>('model', 'gpt-4o-mini');
-                const conventionalCommit = config.get<boolean>('conventionalCommit', true);
-                const multiLine = config.get<boolean>('multiLine', false);
-
-                // Step 5: Update progress
+                // Step 4: Update progress
                 progress.report({
                     message: `Calling AI API (${model})...`,
                 });
