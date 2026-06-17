@@ -19,8 +19,8 @@ export function activate(context: vscode.ExtensionContext): void {
     // Register command: Generate Commit Message
     const generateCmd = vscode.commands.registerCommand(
         'opencommit.generateCommitMessage',
-        async () => {
-            await generateAndInjectCommitMessage(context, statusBarItem);
+        async (sourceControl?: vscode.SourceControl) => {
+            await generateAndInjectCommitMessage(context, statusBarItem, sourceControl);
         },
     );
     context.subscriptions.push(generateCmd);
@@ -28,8 +28,8 @@ export function activate(context: vscode.ExtensionContext): void {
     // Register command: Regenerate Commit Message
     const regenerateCmd = vscode.commands.registerCommand(
         'opencommit.regenerateCommitMessage',
-        async () => {
-            await generateAndInjectCommitMessage(context, statusBarItem);
+        async (sourceControl?: vscode.SourceControl) => {
+            await generateAndInjectCommitMessage(context, statusBarItem, sourceControl);
         },
     );
     context.subscriptions.push(regenerateCmd);

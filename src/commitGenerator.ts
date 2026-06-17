@@ -41,12 +41,12 @@ async function promptModel(config: vscode.WorkspaceConfiguration, context: vscod
     const configDefault = config.get<string>('model', 'deepseek-v4-flash-free');
     const lastUsed = context.globalState.get<string>(LAST_MODEL_KEY);
 
-    // If promptModel is disabled, just use the default silently
-    if (!promptModelSetting) {
-        return lastUsed || configDefault;
+    // Already chose before — use it silently
+    if (!promptModelSetting && lastUsed) {
+        return lastUsed;
     }
 
-    // Prefer last used, then config default
+    // First time: ask once, then never ask again
     const defaultModel = lastUsed || configDefault;
 
     const pick = await vscode.window.showQuickPick(
@@ -57,7 +57,7 @@ async function promptModel(config: vscode.WorkspaceConfiguration, context: vscod
         })),
         {
             title: '✨ Select AI Model for Commit Message',
-            placeHolder: `Default: ${defaultModel} — use ↑↓ to change, Enter to confirm`,
+            placeHolder: `${defaultModel} — Enter to confirm, this will be remembered`,
             matchOnDescription: true,
             ignoreFocusOut: true,
         },
@@ -67,20 +67,24 @@ async function promptModel(config: vscode.WorkspaceConfiguration, context: vscod
         return undefined; // user cancelled
     }
 
-    // Remember for next time
+    // Remember model + turn off future prompts
     await context.globalState.update(LAST_MODEL_KEY, pick.label);
+    await config.update('promptModel', false, vscode.ConfigurationTarget.Global);
+
     return pick.label;
 }
 
 /**
  * Main orchestrator for the commit message generation workflow:
- * 1. Get the git diff
- * 2. Call the OpenCode API
- * 3. Inject the result into the Source Control input box
+ * 1. Determine the target repository (multi-root aware)
+ * 2. Get the git diff for that repo
+ * 3. Call the AI API
+ * 4. Inject the result into the correct Source Control input box
  */
 export async function generateAndInjectCommitMessage(
     context: vscode.ExtensionContext,
     statusBarItem: vscode.StatusBarItem,
+    sourceControl?: vscode.SourceControl,
 ): Promise<void> {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders || workspaceFolders.length === 0) {
@@ -88,7 +92,19 @@ export async function generateAndInjectCommitMessage(
         return;
     }
 
-    const workspaceRoot = workspaceFolders[0].uri.fsPath;
+    // Resolve the target workspace root:
+    // 1. From the clicked SCM provider's rootUri (multi-root aware)
+    // 2. From the active text editor's workspace folder
+    // 3. Fallback to the first workspace folder
+    let workspaceRoot: string;
+    if (sourceControl?.rootUri) {
+        workspaceRoot = sourceControl.rootUri.fsPath;
+    } else if (vscode.window.activeTextEditor) {
+        const activeWs = vscode.workspace.getWorkspaceFolder(vscode.window.activeTextEditor.document.uri);
+        workspaceRoot = activeWs ? activeWs.uri.fsPath : workspaceFolders[0].uri.fsPath;
+    } else {
+        workspaceRoot = workspaceFolders[0].uri.fsPath;
+    }
     const config = vscode.workspace.getConfiguration('commitMessageGenerator');
 
     // Check API token
@@ -172,8 +188,8 @@ export async function generateAndInjectCommitMessage(
                     multiLine,
                 );
 
-                // Step 7: Inject the message into Source Control input
-                await injectCommitMessage(commitMessage);
+                // Step 7: Inject the message into the correct Source Control input
+                await injectCommitMessage(commitMessage, workspaceRoot);
 
                 // Step 8: Show success
                 const sourceControlLabel =
@@ -199,10 +215,10 @@ export async function generateAndInjectCommitMessage(
 
 /**
  * Inject the generated commit message into the VS Code Source Control input box.
- * Uses the built-in Git extension's API for reliable injection.
+ * Targets the correct repository in multi-root workspaces.
  * Falls back to clipboard if injection fails.
  */
-async function injectCommitMessage(message: string): Promise<void> {
+async function injectCommitMessage(message: string, workspaceRoot?: string): Promise<void> {
     // Approach 1: Use the built-in Git extension's API (most reliable)
     try {
         const gitExtension = vscode.extensions.getExtension('vscode.git');
@@ -212,7 +228,17 @@ async function injectCommitMessage(message: string): Promise<void> {
             }
             const gitApi = gitExtension.exports.getAPI(1);
             if (gitApi?.repositories?.length > 0) {
-                gitApi.repositories[0].inputBox.value = message;
+                // Match the repo by rootUri so we target the correct project
+                let targetRepo = gitApi.repositories[0];
+                if (workspaceRoot) {
+                    const matched = gitApi.repositories.find(
+                        (r: any) => r.rootUri?.fsPath === workspaceRoot,
+                    );
+                    if (matched) {
+                        targetRepo = matched;
+                    }
+                }
+                targetRepo.inputBox.value = message;
                 return;
             }
         }
