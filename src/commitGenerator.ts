@@ -41,12 +41,16 @@ async function promptModel(config: vscode.WorkspaceConfiguration, context: vscod
     const configDefault = config.get<string>('model', 'deepseek-v4-flash-free');
     const lastUsed = context.globalState.get<string>(LAST_MODEL_KEY);
 
-    // Already chose before — use it silently
-    if (!promptModelSetting && lastUsed) {
-        return lastUsed;
+    // When prompting is disabled, honor Settings → Model (including custom names
+    // not present in MODEL_CHOICES). Previously lastUsed was preferred and
+    // ignored settings after the first pick.
+    if (!promptModelSetting) {
+        const model = (configDefault || lastUsed || 'deepseek-v4-flash-free').trim();
+        await context.globalState.update(LAST_MODEL_KEY, model);
+        return model;
     }
 
-    // First time: ask once, then never ask again
+    // Ask once, then remember
     const defaultModel = lastUsed || configDefault;
 
     const pick = await vscode.window.showQuickPick(

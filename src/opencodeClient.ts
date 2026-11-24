@@ -119,6 +119,33 @@ export async function generateCommitMessage(
                 throw new Error('Rate limit exceeded. Wait a moment and try again.');
             }
             if (response.status === 404) {
+                // Some OpenAI-compatible gateways return 404 for unknown models.
+                // Don't misreport that as a bad endpoint URL.
+                let modelErrorMessage = '';
+                try {
+                    const parsed = JSON.parse(errorText) as {
+                        error?: { message?: string; param?: string; type?: string };
+                    };
+                    const msg = parsed.error?.message || '';
+                    const looksLikeMissingModel =
+                        parsed.error?.param === 'model' ||
+                        /not.?found/i.test(parsed.error?.type || '') ||
+                        /model .* does not exist|unknown model|invalid model/i.test(msg) ||
+                        /model .* does not exist|unknown model|invalid model/i.test(errorText);
+                    if (looksLikeMissingModel) {
+                        modelErrorMessage = msg || errorText.slice(0, 200);
+                    }
+                } catch {
+                    if (/model .* does not exist|unknown model|invalid model/i.test(errorText)) {
+                        modelErrorMessage = errorText.slice(0, 200);
+                    }
+                }
+                if (modelErrorMessage) {
+                    throw new Error(
+                        `Model not found: ${modelErrorMessage}\n\n` +
+                        'Check VS Code Settings → OpenCommit → Model, or enable Prompt Model and pick a model your API provides.',
+                    );
+                }
                 throw new Error(
                     `API endpoint not found: ${apiBaseUrl}\n\n` +
                     'The URL may be wrong. Go to VS Code Settings → OpenCommit → Api Base Url and set:\n' +
